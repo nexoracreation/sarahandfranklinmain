@@ -560,10 +560,12 @@ window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     var submitBtn    = document.getElementById('rsvp-submit');
     var attendYes    = document.getElementById('attend-yes');
     var attendNo     = document.getElementById('attend-no');
-    var eventsWrap   = document.getElementById('rsvp-events-wrap');
+    var guestsWrap   = document.getElementById('rsvp-guests-wrap');
+    var guestsInput  = document.getElementById('rsvp-guests');
+    var guestPills   = form ? form.querySelectorAll('.guest-pill') : [];
+    var customWrap   = document.getElementById('custom-guest-wrap');
+    var customCount  = document.getElementById('custom-guests-count');
     var errorEl      = document.getElementById('rsvp-error');
-    var selectAllBtn = document.getElementById('rsvp-select-all');
-    var checkboxes   = form.querySelectorAll('input[name="events"]');
 
     // Reject popup
     var rejectPopup  = document.getElementById('rsvp-popup');
@@ -577,43 +579,48 @@ window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 
     if (!form) return;
 
-    /* ── Select All toggle logic ── */
-    function updateSelectAllText() {
-      if (!checkboxes || checkboxes.length === 0) return;
-      var allChecked = Array.prototype.slice.call(checkboxes).every(function (cb) {
-        return cb.checked;
-      });
-      if (selectAllBtn) {
-        selectAllBtn.textContent = allChecked ? 'Deselect All' : 'Select All';
-      }
-    }
-
-    if (selectAllBtn) {
-      selectAllBtn.addEventListener('click', function () {
-        var allChecked = Array.prototype.slice.call(checkboxes).every(function (cb) {
-          return cb.checked;
+    /* ── Guest count selector logic ── */
+    if (guestPills && guestPills.length > 0) {
+      guestPills.forEach(function (pill) {
+        pill.addEventListener('click', function () {
+          guestPills.forEach(function (p) { p.classList.remove('active'); });
+          pill.classList.add('active');
+          var val = pill.dataset.val;
+          if (val === '5+') {
+            if (customWrap) customWrap.style.display = 'block';
+            if (customCount) {
+              customCount.focus();
+              guestsInput.value = (customCount.value && parseInt(customCount.value, 10) >= 5) ? customCount.value : '5';
+            } else if (guestsInput) {
+              guestsInput.value = '5';
+            }
+          } else {
+            if (customWrap) customWrap.style.display = 'none';
+            if (guestsInput) guestsInput.value = val;
+          }
         });
-        checkboxes.forEach(function (cb) {
-          cb.checked = !allChecked;
-        });
-        updateSelectAllText();
-      });
-      checkboxes.forEach(function (cb) {
-        cb.addEventListener('change', updateSelectAllText);
       });
     }
 
-    /* ── Show/hide events grid based on attendance choice ── */
+    if (customCount) {
+      customCount.addEventListener('input', function () {
+        if (customCount.value && guestsInput) {
+          guestsInput.value = customCount.value;
+        }
+      });
+    }
+
+    /* ── Show/hide guests selector based on attendance choice ── */
     function handleAttendanceChange() {
-      if (attendYes.checked) {
-        eventsWrap.classList.add('open');
+      if (attendYes && attendYes.checked) {
+        if (guestsWrap) guestsWrap.classList.add('open');
       } else {
-        eventsWrap.classList.remove('open');
+        if (guestsWrap) guestsWrap.classList.remove('open');
       }
     }
 
-    attendYes.addEventListener('change', handleAttendanceChange);
-    attendNo.addEventListener('change', handleAttendanceChange);
+    if (attendYes) attendYes.addEventListener('change', handleAttendanceChange);
+    if (attendNo) attendNo.addEventListener('change', handleAttendanceChange);
 
     /* ── Open / close popups ── */
     function openPopup(el) {
@@ -665,17 +672,13 @@ window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       }
 
       var isAttending = attending.value === 'yes';
-      var checkedEvents = [];
+      var guestsVal = '1';
 
       if (isAttending) {
-        var eventCheckboxes = form.querySelectorAll('input[name="events"]:checked');
-        if (eventCheckboxes.length === 0) {
-          errorEl.textContent = '✦ Please select at least one event you will attend.';
-          return;
+        guestsVal = (guestsInput ? guestsInput.value : '1') || '1';
+        if (guestsVal === '5+' && customCount && customCount.value) {
+          guestsVal = customCount.value;
         }
-        eventCheckboxes.forEach(function (cb) {
-          checkedEvents.push(cb.value);
-        });
       }
 
       // Show loading state
@@ -684,11 +687,13 @@ window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       submitBtn.innerHTML = 'Saving RSVP... 💌';
       submitBtn.style.opacity = '0.7';
 
+      var guestsSummary = isAttending ? (guestsVal + (parseInt(guestsVal, 10) === 1 ? ' Guest' : ' Guests')) : 'Declined';
       var payload = {
         name: name,
         phone: phone,
         attending: attending.value,
-        events: checkedEvents,
+        guests: isAttending ? guestsVal : '0',
+        events: guestsSummary,
         message: message
       };
 
@@ -709,8 +714,16 @@ window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         }
 
         form.reset();
-        eventsWrap.classList.remove('open');
-        updateSelectAllText();
+        if (attendYes) attendYes.checked = true;
+        if (guestsWrap) guestsWrap.classList.add('open');
+        if (guestPills && guestPills.length > 0) {
+          guestPills.forEach(function (p, idx) {
+            if (idx === 0) p.classList.add('active');
+            else p.classList.remove('active');
+          });
+        }
+        if (guestsInput) guestsInput.value = '1';
+        if (customWrap) customWrap.style.display = 'none';
       }
 
       if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== 'YOUR_APP_SCRIPT_URL_HERE') {
