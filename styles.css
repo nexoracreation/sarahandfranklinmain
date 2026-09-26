@@ -785,38 +785,79 @@ section {
 .rsvp-events-wrap.open,
 .rsvp-guests-wrap.open { max-height:900px; opacity:1; }
 
-.rsvp-guest-pills {
+/* ── GUEST STEPPER (FORM NUMBER FILLING) ── */
+.guest-stepper {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  max-width: 320px;
+  width: 100%;
   margin-top: 4px;
 }
-.guest-pill {
-  flex: 1 1 calc(20% - 10px);
-  min-width: 75px;
-  padding: 12px 8px;
-  background: #fff;
+.stepper-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   border: 1.5px solid var(--bdr-p);
-  border-radius: 8px;
-  font-family: var(--f-sans);
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--txt-m);
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.25s ease;
-  user-select: none;
-}
-.guest-pill:hover {
-  border-color: var(--pink);
+  background: #fff;
   color: var(--pink-d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(163, 128, 59, 0.08);
+  -webkit-tap-highlight-color: transparent;
 }
-.guest-pill.active {
+.stepper-btn:hover {
   background: linear-gradient(135deg, var(--pink-d), var(--pink));
   border-color: var(--pink-d);
   color: #fff;
-  box-shadow: 0 4px 16px rgba(163, 128, 59, 0.25);
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(163, 128, 59, 0.25);
+}
+.stepper-btn:active {
+  transform: scale(0.95);
+}
+.stepper-input-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.stepper-input {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: var(--f-serif);
+  color: var(--pink-d);
+  padding: 11px 64px 11px 18px !important;
+  height: 48px;
+  border-radius: 8px;
+  -moz-appearance: textfield;
+}
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.stepper-suffix {
+  position: absolute;
+  right: 18px;
+  font-size: 0.78rem;
+  font-family: var(--f-sans);
   font-weight: 600;
+  color: var(--txt-d);
+  pointer-events: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.stepper-hint {
+  font-size: 0.72rem;
+  color: var(--txt-d);
+  font-style: italic;
+  margin-top: 4px;
 }
 
 .rsvp-events-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:4px; }

@@ -562,9 +562,9 @@ window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     var attendNo     = document.getElementById('attend-no');
     var guestsWrap   = document.getElementById('rsvp-guests-wrap');
     var guestsInput  = document.getElementById('rsvp-guests');
-    var guestPills   = form ? form.querySelectorAll('.guest-pill') : [];
-    var customWrap   = document.getElementById('custom-guest-wrap');
-    var customCount  = document.getElementById('custom-guests-count');
+    var guestDec     = document.getElementById('guest-dec');
+    var guestInc     = document.getElementById('guest-inc');
+    var guestSuffix  = document.getElementById('guest-suffix');
     var errorEl      = document.getElementById('rsvp-error');
 
     // Reject popup
@@ -579,33 +579,48 @@ window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 
     if (!form) return;
 
-    /* ── Guest count selector logic ── */
-    if (guestPills && guestPills.length > 0) {
-      guestPills.forEach(function (pill) {
-        pill.addEventListener('click', function () {
-          guestPills.forEach(function (p) { p.classList.remove('active'); });
-          pill.classList.add('active');
-          var val = pill.dataset.val;
-          if (val === '5+') {
-            if (customWrap) customWrap.style.display = 'block';
-            if (customCount) {
-              customCount.focus();
-              guestsInput.value = (customCount.value && parseInt(customCount.value, 10) >= 5) ? customCount.value : '5';
-            } else if (guestsInput) {
-              guestsInput.value = '5';
-            }
-          } else {
-            if (customWrap) customWrap.style.display = 'none';
-            if (guestsInput) guestsInput.value = val;
-          }
-        });
+    /* ── Guest count stepper logic ── */
+    function updateGuestSuffix(val) {
+      var count = parseInt(val, 10);
+      if (guestSuffix) {
+        guestSuffix.textContent = (count === 1) ? 'Guest' : 'Guests';
+      }
+    }
+
+    if (guestDec && guestsInput) {
+      guestDec.addEventListener('click', function () {
+        var current = parseInt(guestsInput.value, 10) || 1;
+        if (current > 1) {
+          current -= 1;
+          guestsInput.value = current;
+          updateGuestSuffix(current);
+        }
       });
     }
 
-    if (customCount) {
-      customCount.addEventListener('input', function () {
-        if (customCount.value && guestsInput) {
-          guestsInput.value = customCount.value;
+    if (guestInc && guestsInput) {
+      guestInc.addEventListener('click', function () {
+        var current = parseInt(guestsInput.value, 10) || 1;
+        if (current < 50) {
+          current += 1;
+          guestsInput.value = current;
+          updateGuestSuffix(current);
+        }
+      });
+    }
+
+    if (guestsInput) {
+      guestsInput.addEventListener('input', function () {
+        var val = parseInt(guestsInput.value, 10);
+        if (!isNaN(val) && val >= 1) {
+          updateGuestSuffix(val);
+        }
+      });
+      guestsInput.addEventListener('blur', function () {
+        var val = parseInt(guestsInput.value, 10);
+        if (isNaN(val) || val < 1) {
+          guestsInput.value = 1;
+          updateGuestSuffix(1);
         }
       });
     }
@@ -675,10 +690,8 @@ window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       var guestsVal = '1';
 
       if (isAttending) {
-        guestsVal = (guestsInput ? guestsInput.value : '1') || '1';
-        if (guestsVal === '5+' && customCount && customCount.value) {
-          guestsVal = customCount.value;
-        }
+        var parsed = parseInt(guestsInput ? guestsInput.value : '1', 10);
+        guestsVal = (!isNaN(parsed) && parsed >= 1) ? String(parsed) : '1';
       }
 
       // Show loading state
@@ -716,14 +729,8 @@ window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         form.reset();
         if (attendYes) attendYes.checked = true;
         if (guestsWrap) guestsWrap.classList.add('open');
-        if (guestPills && guestPills.length > 0) {
-          guestPills.forEach(function (p, idx) {
-            if (idx === 0) p.classList.add('active');
-            else p.classList.remove('active');
-          });
-        }
         if (guestsInput) guestsInput.value = '1';
-        if (customWrap) customWrap.style.display = 'none';
+        updateGuestSuffix(1);
       }
 
       if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== 'YOUR_APP_SCRIPT_URL_HERE') {
