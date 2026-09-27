@@ -12,7 +12,7 @@ window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   'use strict';
 
   /* ── CONFIG ── */
-  const WEDDING = new Date('2026-12-28T10:00:00+05:30');
+  const WEDDING = new Date('2026-12-28T14:30:00+05:30');
 
   /* ── ELEMENTS ── */
   const cover      = document.getElementById('cover');
